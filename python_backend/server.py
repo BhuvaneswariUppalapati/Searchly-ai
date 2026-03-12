@@ -88,7 +88,16 @@ def ensure_model_loaded(progress_cb=None):
             return False
 
 
-def encode_images_batch(image_paths, batch_size=32, progress_cb=None, cancel_event=None):
+def get_optimal_batch_size():
+    """Fixed batch size of 64 — good balance of speed and stability."""
+    print(f"[Index] Using batch size: 64", flush=True)
+    return 64
+
+
+def encode_images_batch(image_paths, batch_size=None, progress_cb=None, cancel_event=None):
+    if batch_size is None:
+        batch_size = get_optimal_batch_size()
+    print(f"[Index] Using batch size: {batch_size}", flush=True)
     """Encode images in batches — the fast PyTorch path."""
     import torch
     from PIL import Image
@@ -244,7 +253,7 @@ def _incremental_index(folder, progress_cb, cancel_event):
 
     if new_paths:
         new_embs, valid_new = encode_images_batch(
-            new_paths, batch_size=32,
+            new_paths, batch_size=None,
             progress_cb=lambda cur, tot, f: progress_cb(
                 len(cached_map) + cur, len(all_paths), f),
             cancel_event=cancel_event
